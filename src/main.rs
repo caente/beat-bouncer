@@ -33,11 +33,11 @@ const BALL_VELOCITY_X: f32 = 75.0;
 const BALL_VELOCITY_Y: f32 = 50.0;
 const BALL_RADIUS: f32 = 2.0;
 
-const AUDIO_MUSIC: &[&str] = &[
-    "audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg",
-    "audio/Computer_Music_All-Stars_-_Albatross_v2.ogg",
+const AUDIO_MUSIC: &[&str] = &["audio/vanito1.mp3"
+   //"audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg",
+   //"audio/Computer_Music_All-Stars_-_Albatross_v2.ogg",
 ];
-const AUDIO_BOUNCE: &str = "audio/bounce.ogg";
+const AUDIO_BOUNCE: &str = "audio/beat.wav";
 const AUDIO_SCORE: &str = "audio/score.ogg";
 
 fn main() -> amethyst::Result<()> {
