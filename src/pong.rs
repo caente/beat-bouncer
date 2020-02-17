@@ -1,4 +1,6 @@
-use crate::{systems::ScoreText, Ball, Paddle, Side, ARENA_HEIGHT, ARENA_WIDTH};
+use crate::{
+    audio::MusicFile, beats, systems::ScoreText, Ball, Paddle, Side, ARENA_HEIGHT, ARENA_WIDTH,
+};
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
     core::{timing::Time, transform::Transform},
@@ -7,7 +9,6 @@ use amethyst::{
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     ui::{Anchor, TtfFormat, UiText, UiTransform},
 };
-
 #[derive(Default)]
 pub struct Pong {
     ball_spawn_timer: Option<f32>,
@@ -28,8 +29,18 @@ impl SimpleState for Pong {
         self.sprite_sheet_handle.replace(load_sprite_sheet(world));
         initialise_paddles(world, self.sprite_sheet_handle.clone().unwrap());
         initialise_camera(world);
-        initialise_audio(world);
         initialise_score(world);
+        world.insert({
+            MusicFile {
+                audio_file: "audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg",
+            }
+        });
+        initialise_audio(world);
+        //let beats::Beats {
+        //    music,
+        //    mut timestamps,
+        //    clicks,
+        //} = beats::find_beats(filename).unwrap();
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {

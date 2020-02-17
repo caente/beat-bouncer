@@ -37,13 +37,6 @@ impl<'s> System<'s> for WinnerSystem {
                 // Reset the ball.
                 ball.velocity[0] = -ball.velocity[0];
                 transform.set_translation_x(ARENA_WIDTH / 2.0);
-
-                // Play audio.
-                if let Some(ref output) = audio_output {
-                    if let Some(sound) = storage.get(&sounds.score_sfx) {
-                        output.play_once(sound, 1.0);
-                    }
-                }
             }
         }
     }

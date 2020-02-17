@@ -4,6 +4,7 @@ mod audio;
 mod bundle;
 mod pong;
 mod systems;
+mod beats;
 
 use amethyst::{
     audio::{AudioBundle, DjSystemDesc},

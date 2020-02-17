@@ -6,12 +6,15 @@ use amethyst::{
 use std::{iter::Cycle, vec::IntoIter};
 
 pub struct Sounds {
-    pub score_sfx: SourceHandle,
     pub bounce_sfx: SourceHandle,
 }
 
 pub struct Music {
     pub music: Cycle<IntoIter<SourceHandle>>,
+}
+
+pub struct MusicFile<'a> {
+    pub audio_file: &'a str,
 }
 
 /// Loads an ogg audio track.
@@ -30,7 +33,12 @@ pub fn initialise_audio(world: &mut World) {
         let mut sink = world.write_resource::<AudioSink>();
         sink.set_volume(0.25); // Music is a bit loud, reduce the volume.
 
-        let music = AUDIO_MUSIC
+        let fetched = world.try_fetch::<MusicFile>();
+        let audio_file: &str = match fetched {
+            Some(music_file) => music_file.audio_file,
+            None => panic!(),
+        };
+        let music = vec![audio_file]
             .iter()
             .map(|file| load_audio_track(&loader, &world, file))
             .collect::<Vec<_>>()
@@ -40,7 +48,6 @@ pub fn initialise_audio(world: &mut World) {
 
         let sound = Sounds {
             bounce_sfx: load_audio_track(&loader, &world, AUDIO_BOUNCE),
-            score_sfx: load_audio_track(&loader, &world, AUDIO_SCORE),
         };
 
         (sound, music)

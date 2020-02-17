@@ -151,10 +151,10 @@ dependencies = [
  "amethyst_assets",
  "amethyst_core",
  "amethyst_error",
- "cpal",
+ "cpal 0.8.2",
  "derive-new",
  "log",
- "rodio",
+ "rodio 0.9.0",
  "serde",
  "smallvec 1.2.0",
 ]
@@ -536,7 +536,10 @@ name = "beat-bouncer"
 version = "0.1.0"
 dependencies = [
  "amethyst",
+ "cpython",
  "log",
+ "rand 0.7.3",
+ "rodio 0.10.0",
 ]
 
 [[package]]
@@ -891,6 +894,34 @@ dependencies = [
  "libc",
  "stdweb",
  "winapi",
+]
+
+[[package]]
+name = "cpal"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ded070249be850b5b59e1e3a44a70b8ae395e0e5c65b487131d8909a8208120"
+dependencies = [
+ "alsa-sys",
+ "core-foundation-sys 0.6.2",
+ "coreaudio-rs",
+ "failure",
+ "lazy_static",
+ "libc",
+ "num-traits 0.2.11",
+ "stdweb",
+ "winapi",
+]
+
+[[package]]
+name = "cpython"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfaf3847ab963e40c4f6dd8d6be279bdf74007ae2413786a0dcbb28c52139a95"
+dependencies = [
+ "libc",
+ "num-traits 0.2.11",
+ "python3-sys",
 ]
 
 [[package]]
@@ -2372,6 +2403,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "python3-sys"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90af11779515a1e530af60782d273b59ac79d33b0e253c071a728563957c76d4"
+dependencies = [
+ "libc",
+ "regex",
+]
+
+[[package]]
 name = "quickcheck"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2979,12 +3020,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d0f961b254e66d147a7b550c78b01308934c97d807a34b417fd0f5a0a0f3a2d"
 dependencies = [
  "claxon",
- "cpal",
+ "cpal 0.8.2",
  "hound",
  "lazy_static",
  "lewton",
  "minimp3",
  "nalgebra 0.18.1",
+]
+
+[[package]]
+name = "rodio"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e0e0dfa7c8b17c6428f6e992a22ea595922cc86f946191b6b59e7ce96b77262"
+dependencies = [
+ "claxon",
+ "cpal 0.10.0",
+ "hound",
+ "lazy_static",
+ "lewton",
+ "minimp3",
 ]
 
 [[package]]
