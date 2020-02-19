@@ -2,6 +2,7 @@ use crate::{
     audio::{play_bounce, Sounds},
     Ball, Paddle, Side,
 };
+use crate::{ARENA_HEIGHT, ARENA_WIDTH};
 use amethyst::{
     assets::AssetStorage,
     audio::{output::Output, Source},
@@ -30,13 +31,12 @@ impl<'s> System<'s> for BounceSystem {
         &mut self,
         (mut balls, paddles, transforms, storage, sounds, audio_output): Self::SystemData,
     ) {
+        let magic_time = 0.5;
         // Check whether a ball collided, and bounce off accordingly.
         //
         // We also check for the velocity of the ball every time, to prevent multiple collisions
         // from occurring.
         for (ball, transform) in (&mut balls, &transforms).join() {
-            use crate::ARENA_HEIGHT;
-
             let ball_x = transform.translation().x;
             let ball_y = transform.translation().y;
 
@@ -45,6 +45,7 @@ impl<'s> System<'s> for BounceSystem {
                 || (ball_y >= ARENA_HEIGHT - ball.radius && ball.velocity[1] > 0.0)
             {
                 ball.velocity[1] = -ball.velocity[1];
+                adjust_velocity(&ball_x, &ball_y, &mut ball.velocity, &magic_time);
                 play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
             }
 
@@ -69,10 +70,59 @@ impl<'s> System<'s> for BounceSystem {
                     || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
                 {
                     ball.velocity[0] = -ball.velocity[0];
+                    match fixed_coordinate(&ball_x, &ball_y, &ball.velocity) {
+                        FixedCoordinate::X { coord: xm, t } => {
+                            let ym = ball.velocity[1] * t + ball_y;
+                            ball.velocity[0] = (xm - ball_x) / magic_time;
+                            ball.velocity[1] = (ym - ball_y) / magic_time;
+                        }
+                        FixedCoordinate::Y { coord: ym, t } => {
+                            let xm = ball.velocity[0] * t + ball_x;
+                            ball.velocity[0] = (xm - ball_x) / magic_time;
+                            ball.velocity[1] = (ym - ball_y) / magic_time;
+                        }
+                    }
+                    adjust_velocity(&ball_x, &ball_y, &mut ball.velocity, &magic_time);
                     play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                 }
             }
         }
+    }
+}
+
+enum FixedCoordinate {
+    X { coord: f32, t: f32 },
+    Y { coord: f32, t: f32 },
+}
+
+fn adjust_velocity(x: &f32, y: &f32, velocity: &mut [f32; 2], magic_time: &f32) {
+    match fixed_coordinate(x, y, velocity) {
+        FixedCoordinate::X { coord: xm, t } => {
+            let ym = velocity[1] * t + y;
+            velocity[0] = (xm - x) / magic_time;
+            velocity[1] = (ym - y) / magic_time;
+        }
+        FixedCoordinate::Y { coord: ym, t } => {
+            let xm = velocity[0] * t + x;
+            velocity[0] = (xm - x) / magic_time;
+            velocity[1] = (ym - y) / magic_time;
+        }
+    }
+}
+
+fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> FixedCoordinate {
+    let xm = if velocity[0] >= 0.0 { ARENA_WIDTH } else { 0.0 };
+    let ym = if velocity[1] >= 0.0 {
+        ARENA_HEIGHT
+    } else {
+        0.0
+    };
+    let tx = (xm - *x) / velocity[0];
+    let ty = (ym - *y) / velocity[1];
+    if tx <= ty {
+        FixedCoordinate::X { coord: xm, t: tx }
+    } else {
+        FixedCoordinate::Y { coord: ym, t: ty }
     }
 }
 
