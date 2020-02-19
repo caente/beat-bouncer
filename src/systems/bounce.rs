@@ -45,7 +45,7 @@ impl<'s> System<'s> for BounceSystem {
                 || (ball_y >= ARENA_HEIGHT - ball.radius && ball.velocity[1] > 0.0)
             {
                 ball.velocity[1] = -ball.velocity[1];
-                adjust_velocity(&ball_x, &ball_y, &mut ball.velocity, &magic_time);
+                ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
                 play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
             }
 
@@ -82,7 +82,7 @@ impl<'s> System<'s> for BounceSystem {
                             ball.velocity[1] = (ym - ball_y) / magic_time;
                         }
                     }
-                    adjust_velocity(&ball_x, &ball_y, &mut ball.velocity, &magic_time);
+                    ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
                     play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                 }
             }
@@ -95,17 +95,15 @@ enum FixedCoordinate {
     Y { coord: f32, t: f32 },
 }
 
-fn adjust_velocity(x: &f32, y: &f32, velocity: &mut [f32; 2], magic_time: &f32) {
+fn adjust_velocity(x: &f32, y: &f32, velocity: &[f32; 2], magic_time: &f32) -> [f32; 2] {
     match fixed_coordinate(x, y, velocity) {
         FixedCoordinate::X { coord: xm, t } => {
             let ym = velocity[1] * t + y;
-            velocity[0] = (xm - x) / magic_time;
-            velocity[1] = (ym - y) / magic_time;
+            [(xm - x) / magic_time, (ym - y) / magic_time]
         }
         FixedCoordinate::Y { coord: ym, t } => {
             let xm = velocity[0] * t + x;
-            velocity[0] = (xm - x) / magic_time;
-            velocity[1] = (ym - y) / magic_time;
+            [(xm - x) / magic_time, (ym - y) / magic_time]
         }
     }
 }
