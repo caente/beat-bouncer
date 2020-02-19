@@ -2,7 +2,7 @@ use crate::{
     audio::{play_bounce, Sounds},
     Ball, Paddle, Side,
 };
-use crate::{ARENA_HEIGHT, ARENA_WIDTH};
+use crate::{ARENA_HEIGHT, ARENA_WIDTH, BALL_RADIUS, PADDLE_WIDTH};
 use amethyst::{
     assets::AssetStorage,
     audio::{output::Output, Source},
@@ -70,18 +70,6 @@ impl<'s> System<'s> for BounceSystem {
                     || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
                 {
                     ball.velocity[0] = -ball.velocity[0];
-                    match fixed_coordinate(&ball_x, &ball_y, &ball.velocity) {
-                        FixedCoordinate::X { coord: xm, t } => {
-                            let ym = ball.velocity[1] * t + ball_y;
-                            ball.velocity[0] = (xm - ball_x) / magic_time;
-                            ball.velocity[1] = (ym - ball_y) / magic_time;
-                        }
-                        FixedCoordinate::Y { coord: ym, t } => {
-                            let xm = ball.velocity[0] * t + ball_x;
-                            ball.velocity[0] = (xm - ball_x) / magic_time;
-                            ball.velocity[1] = (ym - ball_y) / magic_time;
-                        }
-                    }
                     ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
                     play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                 }
@@ -109,11 +97,15 @@ fn adjust_velocity(x: &f32, y: &f32, velocity: &[f32; 2], magic_time: &f32) -> [
 }
 
 fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> FixedCoordinate {
-    let xm = if velocity[0] >= 0.0 { ARENA_WIDTH } else { 0.0 };
-    let ym = if velocity[1] >= 0.0 {
-        ARENA_HEIGHT
+    let xm = if velocity[0] >= 0.0 {
+        ARENA_WIDTH - (PADDLE_WIDTH + BALL_RADIUS)
     } else {
-        0.0
+        BALL_RADIUS
+    };
+    let ym = if velocity[1] >= 0.0 {
+        ARENA_HEIGHT - BALL_RADIUS
+    } else {
+        BALL_RADIUS
     };
     let tx = (xm - *x) / velocity[0];
     let ty = (ym - *y) / velocity[1];
