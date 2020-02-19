@@ -31,7 +31,7 @@ impl<'s> System<'s> for BounceSystem {
         &mut self,
         (mut balls, paddles, transforms, storage, sounds, audio_output): Self::SystemData,
     ) {
-        let magic_time = 0.5;
+        let magic_time = 3.0;
         // Check whether a ball collided, and bounce off accordingly.
         //
         // We also check for the velocity of the ball every time, to prevent multiple collisions
@@ -78,25 +78,13 @@ impl<'s> System<'s> for BounceSystem {
     }
 }
 
-enum FixedCoordinate {
-    X { coord: f32, t: f32 },
-    Y { coord: f32, t: f32 },
-}
-
 fn adjust_velocity(x: &f32, y: &f32, velocity: &[f32; 2], magic_time: &f32) -> [f32; 2] {
     match fixed_coordinate(x, y, velocity) {
-        FixedCoordinate::X { coord: xm, t } => {
-            let ym = velocity[1] * t + y;
-            [(xm - x) / magic_time, (ym - y) / magic_time]
-        }
-        FixedCoordinate::Y { coord: ym, t } => {
-            let xm = velocity[0] * t + x;
-            [(xm - x) / magic_time, (ym - y) / magic_time]
-        }
+        (xm, ym) => [(xm - x) / magic_time, (ym - y) / magic_time],
     }
 }
 
-fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> FixedCoordinate {
+fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> (f32, f32) {
     let xm = if velocity[0] >= 0.0 {
         ARENA_WIDTH - (PADDLE_WIDTH + BALL_RADIUS)
     } else {
@@ -110,9 +98,11 @@ fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> FixedCoordinate {
     let tx = (xm - *x) / velocity[0];
     let ty = (ym - *y) / velocity[1];
     if tx <= ty {
-        FixedCoordinate::X { coord: xm, t: tx }
+        let ym = velocity[1] * tx + y;
+        (xm, ym)
     } else {
-        FixedCoordinate::Y { coord: ym, t: ty }
+        let xm = velocity[0] * ty + x;
+        (xm, ym)
     }
 }
 
