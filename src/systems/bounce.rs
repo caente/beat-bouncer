@@ -1,5 +1,6 @@
 use crate::{
     audio::{play_bounce, Sounds},
+    beats::Beats,
     Ball, Paddle, Side,
 };
 use crate::{ARENA_HEIGHT, ARENA_WIDTH, BALL_RADIUS, PADDLE_WIDTH};
@@ -8,7 +9,7 @@ use amethyst::{
     audio::{output::Output, Source},
     core::transform::Transform,
     derive::SystemDesc,
-    ecs::prelude::{Join, Read, ReadExpect, ReadStorage, System, SystemData, WriteStorage},
+    ecs::prelude::{Join, Read, ReadExpect, ReadStorage, System, SystemData, Write, WriteStorage},
 };
 use std::ops::Deref;
 
@@ -25,18 +26,20 @@ impl<'s> System<'s> for BounceSystem {
         Read<'s, AssetStorage<Source>>,
         ReadExpect<'s, Sounds>,
         Option<Read<'s, Output>>,
+        Write<'s, Beats>,
     );
 
     fn run(
         &mut self,
-        (mut balls, paddles, transforms, storage, sounds, audio_output): Self::SystemData,
+        (mut balls, paddles, transforms, storage, sounds, audio_output, mut beats): Self::SystemData,
     ) {
-        let magic_time = 3.0;
         // Check whether a ball collided, and bounce off accordingly.
         //
         // We also check for the velocity of the ball every time, to prevent multiple collisions
         // from occurring.
         for (ball, transform) in (&mut balls, &transforms).join() {
+            let magic_time = beats.intervals.pop().unwrap_or(0.0);
+            println!("magic_time:{}",magic_time);
             let ball_x = transform.translation().x;
             let ball_y = transform.translation().y;
 

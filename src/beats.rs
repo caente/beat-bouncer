@@ -1,19 +1,22 @@
-use cpython::{PyDict, PyResult, Python };
+use cpython::{PyDict, PyResult, Python};
+use rodio::Sink;
+use rodio::Source;
 use std::fs::File;
 use std::io::BufReader;
 use std::time::Duration;
-use rodio::Sink;
-use rodio::Source;
 
+#[derive(Default)]
 pub struct Music {
     pub numbers: Vec<f32>,
     pub sr: usize,
 }
 
+#[derive(Default)]
 pub struct Beats {
     pub music: Music,
     pub timestamps: Vec<f32>,
-    pub clicks:Vec<f32>,
+    pub clicks: Vec<f32>,
+    pub intervals: Vec<f32>,
 }
 
 pub fn find_beats(filename: &str) -> PyResult<Beats> {
@@ -24,7 +27,7 @@ pub fn find_beats(filename: &str) -> PyResult<Beats> {
     locals.set_item(py, "madmom", py.import("madmom")?)?;
     locals.set_item(py, "np", py.import("numpy")?)?;
     locals.set_item(py, "music", &music.numbers)?;
-    locals.set_item(py, "fps", 100)?;
+    locals.set_item(py, "fps", 50)?;
     let proc = py.eval(
         "madmom.features.beats.DBNBeatTrackingProcessor(fps=fps)",
         None,
@@ -37,10 +40,18 @@ pub fn find_beats(filename: &str) -> PyResult<Beats> {
         Some(&locals),
     )?;
     locals.set_item(py, "act", &act)?;
-    let timestamps = py.eval("proc(act)", None, Some(&locals))?
+    let timestamps = py
+        .eval("proc(act)", None, Some(&locals))?
         .extract::<Vec<f32>>(py)?;
     let clicks = get_clicks(py, &timestamps, music.sr, music.numbers.len())?;
-    Ok(Beats { music, timestamps, clicks })
+    let mut intervals = beats_to_intervals(&timestamps);
+    intervals.reverse();
+    Ok(Beats {
+        music,
+        timestamps,
+        clicks,
+        intervals,
+    })
 }
 
 fn load_music(py: Python, filename: &str) -> PyResult<Music> {
@@ -53,7 +64,7 @@ fn load_music(py: Python, filename: &str) -> PyResult<Music> {
     Ok(Music { numbers, sr })
 }
 
-fn get_clicks(py: Python, beats: &Vec<f32>, sr:usize, len: usize) -> PyResult<Vec<f32>> {
+fn get_clicks(py: Python, beats: &Vec<f32>, sr: usize, len: usize) -> PyResult<Vec<f32>> {
     let locals = PyDict::new(py);
     locals.set_item(py, "librosa", py.import("librosa")?)?;
     locals.set_item(py, "beat_times", beats)?;
@@ -63,14 +74,15 @@ fn get_clicks(py: Python, beats: &Vec<f32>, sr:usize, len: usize) -> PyResult<Ve
         "librosa.clicks(beat_times, sr=sr, length=l)",
         None,
         Some(&locals),
-    )?.extract::<Vec<f32>>(py)
+    )?
+    .extract::<Vec<f32>>(py)
 }
 
-pub fn beats_to_intervals(beats: Vec<f32>, scale: f32) -> Vec<u64> {
-    let mut intervals: Vec<u64> = vec![];
+pub fn beats_to_intervals(beats: &Vec<f32>) -> Vec<f32> {
+    let mut intervals: Vec<f32> = vec![];
     for i in 0..(beats.len() - 1) {
-        let interval = beats[i] - beats[i + 1];
-        intervals.push((interval * scale) as u64);
+        let interval = beats[i + 1] - beats[i];
+        intervals.push(interval);
     }
     intervals
 }
@@ -83,8 +95,6 @@ pub fn play_beats(intervals: Vec<u64>) {
     let source = rodio::Decoder::new(BufReader::new(beat_file))
         .unwrap()
         .buffered();
-    let it = intervals.map(move |interval| {
-        source.clone().delay(Duration::from_millis(interval))
-    });
+    let it = intervals.map(move |interval| source.clone().delay(Duration::from_millis(interval)));
     sink.append(rodio::source::from_iter(it));
 }

@@ -36,11 +36,8 @@ impl SimpleState for Pong {
             }
         });
         initialise_audio(world);
-        //let beats::Beats {
-        //    music,
-        //    mut timestamps,
-        //    clicks,
-        //} = beats::find_beats(filename).unwrap();
+        let beats = beats::find_beats("assets/audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg").unwrap();
+        world.insert(beats);
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
