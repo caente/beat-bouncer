@@ -1,10 +1,10 @@
 //! Pong
 
 mod audio;
+mod beats;
 mod bundle;
 mod pong;
 mod systems;
-mod beats;
 
 use amethyst::{
     audio::{AudioBundle, DjSystemDesc},
@@ -101,7 +101,7 @@ impl Component for Ball {
     type Storage = DenseVecStorage<Self>;
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum Side {
     Left,
     Right,
@@ -130,4 +130,3 @@ impl Paddle {
 impl Component for Paddle {
     type Storage = DenseVecStorage<Self>;
 }
-

@@ -113,8 +113,8 @@ fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet
     let y = ARENA_HEIGHT / 2.0;
     left_transform.set_translation_xyz(PADDLE_WIDTH * 0.5, y, 0.0);
     right_transform.set_translation_xyz(ARENA_WIDTH - PADDLE_WIDTH * 0.5, y, 0.0);
-    top_transform.set_translation_xyz(ARENA_WIDTH * 0.5, ARENA_HEIGHT, 0.0);
-    bottom_transform.set_translation_xyz(ARENA_WIDTH * 0.5, PADDLE_WIDTH * 0.5, 0.0);
+    bottom_transform.set_translation_xyz(ARENA_WIDTH * 0.5, ARENA_HEIGHT - PADDLE_WIDTH * 0.5, 0.0);
+    top_transform.set_translation_xyz(ARENA_WIDTH * 0.5, PADDLE_WIDTH * 0.5, 0.0);
 
     // Assign the sprites for the paddles
     let sprite_render_vertical = SpriteRender {
@@ -145,7 +145,7 @@ fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet
         .create_entity()
         .with(sprite_render_vertical)
         .with(Paddle {
-            velocity: PADDLE_VELOCITY,
+            velocity: 0.0,
             side: Side::Right,
             width: PADDLE_WIDTH,
             height: PADDLE_HEIGHT,
@@ -157,7 +157,7 @@ fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet
         .create_entity()
         .with(sprite_render_horizontal.clone())
         .with(Paddle {
-            velocity: PADDLE_VELOCITY,
+            velocity: 0.0,
             side: Side::Top,
             width: PADDLE_HEIGHT,
             height: PADDLE_WIDTH,
@@ -169,7 +169,7 @@ fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet
         .create_entity()
         .with(sprite_render_horizontal)
         .with(Paddle {
-            velocity: PADDLE_VELOCITY,
+            velocity: 0.0,
             side: Side::Bottom,
             width: PADDLE_HEIGHT,
             height: PADDLE_WIDTH,

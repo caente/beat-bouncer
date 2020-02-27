@@ -38,8 +38,8 @@ impl<'s> System<'s> for BounceSystem {
         // We also check for the velocity of the ball every time, to prevent multiple collisions
         // from occurring.
         for (ball, transform) in (&mut balls, &transforms).join() {
-            let magic_time = 0.4;//beats.intervals.pop().unwrap_or(0.0);
-            println!("magic_time:{}",magic_time);
+            let magic_time = 0.6; //beats.intervals.pop().unwrap_or(0.0);
+            println!("magic_time:{}", magic_time);
             let ball_x = transform.translation().x;
             let ball_y = transform.translation().y;
 
@@ -62,19 +62,50 @@ impl<'s> System<'s> for BounceSystem {
                 // lowest coordinates, and adding the ball radius to the highest ones. The ball
                 // is then within the paddle if its centre is within the larger wrapper
                 // rectangle.
-                if point_in_rect(
-                    ball_x,
-                    ball_y,
-                    paddle_x - ball.radius,
-                    paddle_y - ball.radius,
-                    paddle_x + (paddle.width + ball.radius),
-                    paddle_y + (paddle.height + ball.radius),
-                ) && ((paddle.side == Side::Left && ball.velocity[0] < 0.0)
-                    || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
-                {
-                    ball.velocity[0] = -ball.velocity[0];
-                    ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
-                    play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
+                match paddle.side {
+                    Side::Left | Side::Right => {
+                        if point_in_rect(
+                            ball_x,
+                            ball_y,
+                            paddle_x - ball.radius,
+                            paddle_y - ball.radius,
+                            paddle_x + (paddle.width + ball.radius),
+                            paddle_y + (paddle.height + ball.radius),
+                        ) && ((paddle.side == Side::Left && ball.velocity[0] < 0.0)
+                            || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
+                        {
+                            ball.velocity[0] = -ball.velocity[0];
+                            ball.velocity =
+                                adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
+                            play_bounce(
+                                &*sounds,
+                                &storage,
+                                audio_output.as_ref().map(|o| o.deref()),
+                            );
+                        }
+                    }
+                    Side::Top | Side::Bottom => {
+                        println!("{:?}.y:{}", paddle.side, paddle_y);
+                        if point_in_rect(
+                            ball_x,
+                            ball_y,
+                            paddle_x - ball.radius, // x >= left
+                            paddle_y + (paddle.height + ball.radius), //y >= bottom
+                            paddle_x + (paddle.width + ball.radius), // x <= right
+                            paddle_y - ball.radius, //y <= top
+                        ) && ((paddle.side == Side::Top && ball.velocity[0] < 0.0)
+                            || (paddle.side == Side::Bottom && ball.velocity[0] > 0.0))
+                        {
+                            ball.velocity[0] = -ball.velocity[0];
+                            ball.velocity =
+                                adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
+                            play_bounce(
+                                &*sounds,
+                                &storage,
+                                audio_output.as_ref().map(|o| o.deref()),
+                            );
+                        }
+                    }
                 }
             }
         }
@@ -91,12 +122,12 @@ fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> (f32, f32) {
     let xm = if velocity[0] >= 0.0 {
         ARENA_WIDTH - (PADDLE_WIDTH + BALL_RADIUS)
     } else {
-        BALL_RADIUS
+        PADDLE_WIDTH + BALL_RADIUS
     };
     let ym = if velocity[1] >= 0.0 {
         ARENA_HEIGHT - BALL_RADIUS
     } else {
-        BALL_RADIUS
+        PADDLE_WIDTH + BALL_RADIUS
     };
     let tx = (xm - *x) / velocity[0];
     let ty = (ym - *y) / velocity[1];
