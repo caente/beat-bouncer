@@ -29,15 +29,16 @@ impl SimpleState for Pong {
         self.sprite_sheet_handle.replace(load_sprite_sheet(world));
         initialise_paddles(world, self.sprite_sheet_handle.clone().unwrap());
         initialise_camera(world);
-        initialise_score(world);
         world.insert({
             MusicFile {
                 audio_file: "audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg",
             }
         });
         initialise_audio(world);
-        let beats = beats::find_beats("assets/audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg").unwrap();
-        world.insert(beats);
+        //let beats =
+        //    beats::find_beats("assets/audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg")
+        //        .unwrap();
+        //world.insert(beats);
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
@@ -69,7 +70,7 @@ fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
         let loader = world.read_resource::<Loader>();
         let texture_storage = world.read_resource::<AssetStorage<Texture>>();
         loader.load(
-            "texture/pong_spritesheet.png",
+            "texture/pong_spritesheet_all.png",
             ImageFormat::default(),
             (),
             &texture_storage,
@@ -105,22 +106,31 @@ fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet
 
     let mut left_transform = Transform::default();
     let mut right_transform = Transform::default();
+    let mut top_transform = Transform::default();
+    let mut bottom_transform = Transform::default();
 
     // Correctly position the paddles.
     let y = ARENA_HEIGHT / 2.0;
     left_transform.set_translation_xyz(PADDLE_WIDTH * 0.5, y, 0.0);
     right_transform.set_translation_xyz(ARENA_WIDTH - PADDLE_WIDTH * 0.5, y, 0.0);
+    top_transform.set_translation_xyz(ARENA_WIDTH * 0.5, ARENA_HEIGHT, 0.0);
+    bottom_transform.set_translation_xyz(ARENA_WIDTH * 0.5, PADDLE_WIDTH * 0.5, 0.0);
 
     // Assign the sprites for the paddles
-    let sprite_render = SpriteRender {
+    let sprite_render_vertical = SpriteRender {
+        sprite_sheet: sprite_sheet_handle.clone(),
+        sprite_number: 0,
+    };
+
+    let sprite_render_horizontal = SpriteRender {
         sprite_sheet: sprite_sheet_handle,
-        sprite_number: 0, // paddle is the first sprite in the sprite_sheet
+        sprite_number: 2,
     };
 
     // Create a left plank entity.
     world
         .create_entity()
-        .with(sprite_render.clone())
+        .with(sprite_render_vertical.clone())
         .with(Paddle {
             velocity: PADDLE_VELOCITY,
             side: Side::Left,
@@ -133,7 +143,7 @@ fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet
     // Create right plank entity.
     world
         .create_entity()
-        .with(sprite_render)
+        .with(sprite_render_vertical)
         .with(Paddle {
             velocity: PADDLE_VELOCITY,
             side: Side::Right,
@@ -141,6 +151,30 @@ fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet
             height: PADDLE_HEIGHT,
         })
         .with(right_transform)
+        .build();
+    // Create top plank entity
+    world
+        .create_entity()
+        .with(sprite_render_horizontal.clone())
+        .with(Paddle {
+            velocity: PADDLE_VELOCITY,
+            side: Side::Top,
+            width: PADDLE_HEIGHT,
+            height: PADDLE_WIDTH,
+        })
+        .with(top_transform)
+        .build();
+    // Create bottom plank entity
+    world
+        .create_entity()
+        .with(sprite_render_horizontal)
+        .with(Paddle {
+            velocity: PADDLE_VELOCITY,
+            side: Side::Bottom,
+            width: PADDLE_HEIGHT,
+            height: PADDLE_WIDTH,
+        })
+        .with(bottom_transform)
         .build();
 }
 

@@ -38,7 +38,7 @@ impl<'s> System<'s> for BounceSystem {
         // We also check for the velocity of the ball every time, to prevent multiple collisions
         // from occurring.
         for (ball, transform) in (&mut balls, &transforms).join() {
-            let magic_time = beats.intervals.pop().unwrap_or(0.0);
+            let magic_time = 0.4;//beats.intervals.pop().unwrap_or(0.0);
             println!("magic_time:{}",magic_time);
             let ball_x = transform.translation().x;
             let ball_y = transform.translation().y;

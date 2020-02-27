@@ -36,6 +36,8 @@ impl<'s> System<'s> for PaddleSystem {
                     Side::Left => 0.0,
                     Side::Right if velocity_x >= 0.0 => velocity_paddle,
                     Side::Right => 0.0,
+                    Side::Top => 0.0,
+                    Side::Bottom => 0.0,
                 };
                 paddle.velocity = movement;
             }

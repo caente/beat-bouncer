@@ -28,7 +28,7 @@ const ARENA_HEIGHT: f32 = 100.0;
 const ARENA_WIDTH: f32 = 100.0;
 const PADDLE_HEIGHT: f32 = 16.0;
 const PADDLE_WIDTH: f32 = 4.0;
-const PADDLE_VELOCITY: f32 = 75.0;
+const PADDLE_VELOCITY: f32 = 0.0;
 
 const BALL_VELOCITY_X: f32 = 75.0;
 const BALL_VELOCITY_Y: f32 = 50.0;
@@ -105,6 +105,8 @@ impl Component for Ball {
 pub enum Side {
     Left,
     Right,
+    Top,
+    Bottom,
 }
 
 pub struct Paddle {
