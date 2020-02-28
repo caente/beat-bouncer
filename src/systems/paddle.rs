@@ -25,15 +25,23 @@ impl<'s> System<'s> for PaddleSystem {
             let ball_y = ball_transform.translation().y;
             let [velocity_x, velocity_y] = ball.velocity;
             use crate::{ARENA_HEIGHT, ARENA_WIDTH};
-            let end_x = if velocity_x < 0.0 { 0.0 } else { ARENA_WIDTH };
-            let end_y = if velocity_y < 0.0 { 0.0 } else { ARENA_HEIGHT };
-            let time_until_collision_y = (end_x - ball_x) / velocity_x;
-            let time_until_collision_x = (end_y - ball_y) / velocity_y;
-            let collision_y = velocity_y * time_until_collision_y + ball_y;
-            let collision_x = velocity_y * time_until_collision_x + ball_x;
             for (paddle, paddle_transform) in (&mut paddle, &transforms).join() {
-                let paddle_y = paddle_transform.translation().y;
-                let paddle_x = paddle_transform.translation().x;
+                let end_x = if velocity_x < 0.0 {
+                    paddle.width
+                } else {
+                    ARENA_WIDTH - paddle.width
+                };
+                let end_y = if velocity_y < 0.0 {
+                    paddle.height
+                } else {
+                    ARENA_HEIGHT - paddle.height
+                };
+                let time_until_collision_y = (end_x - ball_x) / velocity_x;
+                let time_until_collision_x = (end_y - ball_y) / velocity_y;
+                let collision_y = velocity_y * time_until_collision_y + ball_y;
+                let collision_x = velocity_y * time_until_collision_x + ball_x;
+                let paddle_y = paddle_transform.translation().y - ball.radius;
+                let paddle_x = paddle_transform.translation().x - ball.radius;
                 let velocity_paddle_y = (collision_y - paddle_y) / time_until_collision_y;
                 let velocity_paddle_x = (collision_x - paddle_x) / time_until_collision_x;
                 let movement = match paddle.side {

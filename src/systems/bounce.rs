@@ -3,7 +3,7 @@ use crate::{
     beats::Beats,
     Ball, Paddle, Side,
 };
-use crate::{ARENA_HEIGHT, ARENA_WIDTH, BALL_RADIUS, PADDLE_WIDTH};
+use crate::{ARENA_HEIGHT, ARENA_WIDTH, BALL_RADIUS, PADDLE_HEIGHT, PADDLE_WIDTH};
 use amethyst::{
     assets::AssetStorage,
     audio::{output::Output, Source},
@@ -39,18 +39,18 @@ impl<'s> System<'s> for BounceSystem {
         // from occurring.
         for (ball, transform) in (&mut balls, &transforms).join() {
             let magic_time = 0.6; //beats.intervals.pop().unwrap_or(0.0);
-            println!("magic_time:{}", magic_time);
+                                  //println!("magic_time:{}", magic_time);
             let ball_x = transform.translation().x;
             let ball_y = transform.translation().y;
 
-            // Bounce at the top or the bottom of the arena.
-            if (ball_y <= ball.radius && ball.velocity[1] < 0.0)
-                || (ball_y >= ARENA_HEIGHT - ball.radius && ball.velocity[1] > 0.0)
-            {
-                ball.velocity[1] = -ball.velocity[1];
-                ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
-                play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
-            }
+            // // Bounce at the top or the bottom of the arena.
+            // if (ball_y <= ball.radius && ball.velocity[1] < 0.0)
+            //     || (ball_y >= ARENA_HEIGHT - ball.radius && ball.velocity[1] > 0.0)
+            // {
+            //     ball.velocity[1] = -ball.velocity[1];
+            //     ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
+            //     play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
+            // }
 
             // Bounce at the paddles.
             for (paddle, paddle_transform) in (&paddles, &transforms).join() {
@@ -85,18 +85,15 @@ impl<'s> System<'s> for BounceSystem {
                         }
                     }
                     Side::Top | Side::Bottom => {
-                        println!("{:?}.y:{}", paddle.side, paddle_y);
-                        if point_in_rect(
-                            ball_x,
-                            ball_y,
-                            paddle_x - ball.radius, // x >= left
-                            paddle_y + (paddle.height + ball.radius), //y >= bottom
-                            paddle_x + (paddle.width + ball.radius), // x <= right
-                            paddle_y - ball.radius, //y <= top
-                        ) && ((paddle.side == Side::Top && ball.velocity[0] < 0.0)
-                            || (paddle.side == Side::Bottom && ball.velocity[0] > 0.0))
+                        let top = paddle_y + (paddle.height + ball.radius);
+                        let bottom = paddle_y - ball.radius;
+                        let left = paddle_x - ball.radius;
+                        let right = paddle_x + (paddle.width + ball.radius);
+                        if point_in_rect(ball_x, ball_y, left, bottom, right, top)
+                            && ((paddle.side == Side::Top && ball.velocity[1] < 0.0)
+                                || (paddle.side == Side::Bottom && ball.velocity[1] > 0.0))
                         {
-                            ball.velocity[0] = -ball.velocity[0];
+                            ball.velocity[1] = -ball.velocity[1];
                             ball.velocity =
                                 adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
                             play_bounce(
@@ -114,7 +111,7 @@ impl<'s> System<'s> for BounceSystem {
 
 fn adjust_velocity(x: &f32, y: &f32, velocity: &[f32; 2], magic_time: &f32) -> [f32; 2] {
     match fixed_coordinate(x, y, velocity) {
-        (xm, ym) => [(xm - x) / magic_time, (ym - y) / magic_time],
+        (xm, ym) => [velocity[0], velocity[1]], //[(xm - x) / magic_time, (ym - y) / magic_time],
     }
 }
 
@@ -125,7 +122,7 @@ fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> (f32, f32) {
         PADDLE_WIDTH + BALL_RADIUS
     };
     let ym = if velocity[1] >= 0.0 {
-        ARENA_HEIGHT - BALL_RADIUS
+        ARENA_HEIGHT - (BALL_RADIUS + PADDLE_WIDTH)
     } else {
         PADDLE_WIDTH + BALL_RADIUS
     };
