@@ -30,8 +30,8 @@ const PADDLE_HEIGHT: f32 = 16.0;
 const PADDLE_WIDTH: f32 = 4.0;
 const PADDLE_VELOCITY: f32 = 0.0;
 
-const BALL_VELOCITY_X: f32 = 70.0;
-const BALL_VELOCITY_Y: f32 = 80.0;
+const BALL_VELOCITY_X: f32 = 60.0;
+const BALL_VELOCITY_Y: f32 = 50.0;
 const BALL_RADIUS: f32 = 2.0;
 
 const AUDIO_BOUNCE: &str = "audio/beat.wav";

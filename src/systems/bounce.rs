@@ -3,7 +3,7 @@ use crate::{
     audio::{play_bounce, Sounds},
     Ball, Paddle, Side,
 };
-use crate::{ARENA_HEIGHT, ARENA_WIDTH, BALL_RADIUS, PADDLE_WIDTH};
+use crate::{ARENA_HEIGHT, ARENA_WIDTH, BALL_RADIUS, PADDLE_HEIGHT, PADDLE_WIDTH};
 use amethyst::{
     assets::AssetStorage,
     audio::{output::Output, Source},
@@ -42,8 +42,6 @@ impl<'s> System<'s> for BounceSystem {
                                   //println!("magic_time:{}", magic_time);
             let ball_x = transform.translation().x;
             let ball_y = transform.translation().y;
-            let offset = 1.1;
-            let ball_radius_offset = ball.radius * offset;
             // Bounce at the paddles.
             for (paddle, paddle_transform) in (&paddles, &transforms).join() {
                 let paddle_x = paddle_transform.translation().x - (paddle.width * 0.5);
@@ -54,45 +52,59 @@ impl<'s> System<'s> for BounceSystem {
                 // lowest coordinates, and adding the ball radius to the highest ones. The ball
                 // is then within the paddle if its centre is within the larger wrapper
                 // rectangle.
-                match paddle.side {
-                    Side::Left | Side::Right => {
-                        let left = paddle_x - ball_radius_offset;
-                        let bottom = paddle_y - ball_radius_offset;
-                        let right = paddle_x + (paddle.width + ball_radius_offset);
-                        let top = paddle_y + (paddle.height + ball_radius_offset);
-                        if point_in_rect(ball_x, ball_y, left, bottom, right, top)
-                            && ((paddle.side == Side::Left && ball.velocity[0] < 0.0)
-                                || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
-                        {
-                            ball.velocity[0] = -ball.velocity[0];
-                            ball.velocity =
-                                adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
-                            play_bounce(
-                                &*sounds,
-                                &storage,
-                                audio_output.as_ref().map(|o| o.deref()),
-                            );
-                        }
-                    }
-                    Side::Top | Side::Bottom => {
-                        let top = paddle_y + (paddle.height + (ball_radius_offset));
-                        let bottom = paddle_y - (ball_radius_offset);
-                        let left = paddle_x - (ball_radius_offset);
-                        let right = paddle_x + (paddle.width + ball.radius);
-                        if point_in_rect(ball_x, ball_y, left, bottom, right, top)
-                            && ((paddle.side == Side::Top && ball.velocity[1] < 0.0)
-                                || (paddle.side == Side::Bottom && ball.velocity[1] > 0.0))
-                        {
-                            ball.velocity[1] = -ball.velocity[1];
-                            ball.velocity =
-                                adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
-                            play_bounce(
-                                &*sounds,
-                                &storage,
-                                audio_output.as_ref().map(|o| o.deref()),
-                            );
-                        }
-                    }
+                let rectangle = HitRectangle::new(paddle_x, paddle_y, ball.radius, &paddle.side);
+                if point_in_rect(ball_x, ball_y, &rectangle)
+                    && ((paddle.side == Side::Left && ball.velocity[0] < 0.0)
+                        || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
+                {
+                    ball.velocity[0] = -ball.velocity[0];
+                    ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
+                    play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
+                } else if point_in_rect(ball_x, ball_y, &rectangle)
+                    && ((paddle.side == Side::Top && ball.velocity[1] < 0.0)
+                        || (paddle.side == Side::Bottom && ball.velocity[1] > 0.0))
+                {
+                    ball.velocity[1] = -ball.velocity[1];
+                    ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
+                    play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
+                }
+            }
+        }
+    }
+}
+pub struct HitRectangle {
+    pub top: f32,
+    pub bottom: f32,
+    pub left: f32,
+    pub right: f32,
+}
+impl HitRectangle {
+    pub fn new(paddle_x: f32, paddle_y: f32, ball_radius: f32, side: &Side) -> HitRectangle {
+        let offset = 1.1;
+        let ball_radius_offset = ball_radius * offset;
+        match side {
+            Side::Top | Side::Bottom => {
+                let top = paddle_y + (PADDLE_WIDTH + (ball_radius_offset));
+                let bottom = paddle_y - (ball_radius_offset);
+                let left = paddle_x - (ball_radius_offset);
+                let right = paddle_x + (PADDLE_HEIGHT + ball_radius_offset);
+                HitRectangle {
+                    top,
+                    bottom,
+                    left,
+                    right,
+                }
+            }
+            Side::Left | Side::Right => {
+                let left = paddle_x - ball_radius_offset;
+                let bottom = paddle_y - ball_radius_offset;
+                let right = paddle_x + (PADDLE_WIDTH + ball_radius_offset);
+                let top = paddle_y + (PADDLE_HEIGHT + ball_radius_offset);
+                HitRectangle {
+                    top,
+                    bottom,
+                    left,
+                    right,
                 }
             }
         }
@@ -101,7 +113,7 @@ impl<'s> System<'s> for BounceSystem {
 
 fn adjust_velocity(x: &f32, y: &f32, velocity: &[f32; 2], magic_time: &f32) -> [f32; 2] {
     match fixed_coordinate(x, y, velocity) {
-        (xm, ym) => [velocity[0],velocity[1]]//[(xm - x) / magic_time, (ym - y) / magic_time],
+        (xm, ym) => [velocity[0], velocity[1]], //[(xm - x) / magic_time, (ym - y) / magic_time],
     }
 }
 
@@ -129,6 +141,13 @@ fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> (f32, f32) {
 
 // A point is in a box when its coordinates are smaller or equal than the top
 // right and larger or equal than the bottom left.
-fn point_in_rect(x: f32, y: f32, left: f32, bottom: f32, right: f32, top: f32) -> bool {
-    x >= left && x <= right && y >= bottom && y <= top
+fn point_in_rect(x: f32, y: f32, rectangle: &HitRectangle) -> bool {
+    match rectangle {
+        HitRectangle {
+            top,
+            bottom,
+            left,
+            right,
+        } => x >= *left && x <= *right && y >= *bottom && y <= *top,
+    }
 }
