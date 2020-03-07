@@ -38,19 +38,10 @@ impl<'s> System<'s> for BounceSystem {
         // We also check for the velocity of the ball every time, to prevent multiple collisions
         // from occurring.
         for (ball, transform) in (&mut balls, &transforms).join() {
-            let magic_time = 0.6; //beats.intervals.pop().unwrap_or(0.0);
-                                  //println!("magic_time:{}", magic_time);
+            let magic_time = beats.intervals.pop().unwrap_or(0.0);
+            //println!("magic_time:{}", magic_time);
             let ball_x = transform.translation().x;
             let ball_y = transform.translation().y;
-
-            // // Bounce at the top or the bottom of the arena.
-            // if (ball_y <= ball.radius && ball.velocity[1] < 0.0)
-            //     || (ball_y >= ARENA_HEIGHT - ball.radius && ball.velocity[1] > 0.0)
-            // {
-            //     ball.velocity[1] = -ball.velocity[1];
-            //     ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
-            //     play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
-            // }
 
             // Bounce at the paddles.
             for (paddle, paddle_transform) in (&paddles, &transforms).join() {
@@ -111,7 +102,7 @@ impl<'s> System<'s> for BounceSystem {
 
 fn adjust_velocity(x: &f32, y: &f32, velocity: &[f32; 2], magic_time: &f32) -> [f32; 2] {
     match fixed_coordinate(x, y, velocity) {
-        (xm, ym) => [velocity[0], velocity[1]], //[(xm - x) / magic_time, (ym - y) / magic_time],
+        (xm, ym) => [(xm - x) / magic_time, (ym - y) / magic_time],
     }
 }
 

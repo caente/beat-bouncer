@@ -7,7 +7,6 @@ use amethyst::{
     ecs::prelude::World,
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
-    ui::{Anchor, TtfFormat, UiText, UiTransform},
 };
 #[derive(Default)]
 pub struct Pong {
@@ -35,10 +34,10 @@ impl SimpleState for Pong {
             }
         });
         initialise_audio(world);
-        //let beats =
-        //    beats::find_beats("assets/audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg")
-        //        .unwrap();
-        //world.insert(beats);
+        let beats =
+            beats::find_beats("assets/audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg")
+                .unwrap();
+        world.insert(beats);
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
@@ -201,56 +200,4 @@ fn initialise_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) 
         })
         .with(local_transform)
         .build();
-}
-
-fn initialise_score(world: &mut World) {
-    let font = world.read_resource::<Loader>().load(
-        "font/square.ttf",
-        TtfFormat,
-        (),
-        &world.read_resource(),
-    );
-    let p1_transform = UiTransform::new(
-        "P1".to_string(),
-        Anchor::TopMiddle,
-        Anchor::Middle,
-        -50.,
-        -50.,
-        1.,
-        200.,
-        50.,
-    );
-
-    let p2_transform = UiTransform::new(
-        "P2".to_string(),
-        Anchor::TopMiddle,
-        Anchor::Middle,
-        50.,
-        -50.,
-        1.,
-        200.,
-        50.,
-    );
-
-    let p1_score = world
-        .create_entity()
-        .with(p1_transform)
-        .with(UiText::new(
-            font.clone(),
-            "0".to_string(),
-            [1.0, 1.0, 1.0, 1.0],
-            50.,
-        ))
-        .build();
-    let p2_score = world
-        .create_entity()
-        .with(p2_transform)
-        .with(UiText::new(
-            font,
-            "0".to_string(),
-            [1.0, 1.0, 1.0, 1.0],
-            50.,
-        ))
-        .build();
-    world.insert(ScoreText { p1_score, p2_score });
 }
