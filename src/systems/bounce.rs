@@ -42,7 +42,8 @@ impl<'s> System<'s> for BounceSystem {
                                   //println!("magic_time:{}", magic_time);
             let ball_x = transform.translation().x;
             let ball_y = transform.translation().y;
-
+            let offset = 1.1;
+            let ball_radius_offset = ball.radius * offset;
             // Bounce at the paddles.
             for (paddle, paddle_transform) in (&paddles, &transforms).join() {
                 let paddle_x = paddle_transform.translation().x - (paddle.width * 0.5);
@@ -55,16 +56,13 @@ impl<'s> System<'s> for BounceSystem {
                 // rectangle.
                 match paddle.side {
                     Side::Left | Side::Right => {
-                        let offset = 1.1;
-                        if point_in_rect(
-                            ball_x,
-                            ball_y,
-                            paddle_x - ball.radius * offset,
-                            paddle_y - ball.radius * offset,
-                            paddle_x + (paddle.width + ball.radius * offset),
-                            paddle_y + (paddle.height + ball.radius * offset),
-                        ) && ((paddle.side == Side::Left && ball.velocity[0] < 0.0)
-                            || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
+                        let left = paddle_x - ball_radius_offset;
+                        let bottom = paddle_y - ball_radius_offset;
+                        let right = paddle_x + (paddle.width + ball_radius_offset);
+                        let top = paddle_y + (paddle.height + ball_radius_offset);
+                        if point_in_rect(ball_x, ball_y, left, bottom, right, top)
+                            && ((paddle.side == Side::Left && ball.velocity[0] < 0.0)
+                                || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
                         {
                             ball.velocity[0] = -ball.velocity[0];
                             ball.velocity =
@@ -77,10 +75,9 @@ impl<'s> System<'s> for BounceSystem {
                         }
                     }
                     Side::Top | Side::Bottom => {
-                        let offset = 1.1;
-                        let top = paddle_y + (paddle.height + (ball.radius * offset));
-                        let bottom = paddle_y - (ball.radius * offset);
-                        let left = paddle_x - (ball.radius * offset);
+                        let top = paddle_y + (paddle.height + (ball_radius_offset));
+                        let bottom = paddle_y - (ball_radius_offset);
+                        let left = paddle_x - (ball_radius_offset);
                         let right = paddle_x + (paddle.width + ball.radius);
                         if point_in_rect(ball_x, ball_y, left, bottom, right, top)
                             && ((paddle.side == Side::Top && ball.velocity[1] < 0.0)
