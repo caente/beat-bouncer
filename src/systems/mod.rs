@@ -9,5 +9,5 @@ pub use self::{
     move_balls::MoveBallsSystem,
     paddle::PaddleSystem,
     move_paddle::MovePaddleSystem,
-    winner::{ScoreText, WinnerSystem},
+    winner::{WinnerSystem},
 };

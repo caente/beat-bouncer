@@ -1,9 +1,9 @@
+use crate::pong::Intervals;
 use crate::{
     audio::{play_bounce, Sounds},
-    beats::Beats,
     Ball, Paddle, Side,
 };
-use crate::{ARENA_HEIGHT, ARENA_WIDTH, BALL_RADIUS, PADDLE_HEIGHT, PADDLE_WIDTH};
+use crate::{ARENA_HEIGHT, ARENA_WIDTH, BALL_RADIUS, PADDLE_WIDTH};
 use amethyst::{
     assets::AssetStorage,
     audio::{output::Output, Source},
@@ -26,20 +26,20 @@ impl<'s> System<'s> for BounceSystem {
         Read<'s, AssetStorage<Source>>,
         ReadExpect<'s, Sounds>,
         Option<Read<'s, Output>>,
-        Write<'s, Beats>,
+        Write<'s, Intervals>,
     );
 
     fn run(
         &mut self,
-        (mut balls, paddles, transforms, storage, sounds, audio_output, mut beats): Self::SystemData,
+        (mut balls, paddles, transforms, storage, sounds, audio_output, mut intervals): Self::SystemData,
     ) {
         // Check whether a ball collided, and bounce off accordingly.
         //
         // We also check for the velocity of the ball every time, to prevent multiple collisions
         // from occurring.
         for (ball, transform) in (&mut balls, &transforms).join() {
-            let magic_time = beats.intervals.pop().unwrap_or(0.0);
-            //println!("magic_time:{}", magic_time);
+            let magic_time = 0.6; //intervals.next().unwrap_or(0.0);
+                                  //println!("magic_time:{}", magic_time);
             let ball_x = transform.translation().x;
             let ball_y = transform.translation().y;
 
@@ -55,13 +55,14 @@ impl<'s> System<'s> for BounceSystem {
                 // rectangle.
                 match paddle.side {
                     Side::Left | Side::Right => {
+                        let offset = 1.1;
                         if point_in_rect(
                             ball_x,
                             ball_y,
-                            paddle_x - ball.radius,
-                            paddle_y - ball.radius,
-                            paddle_x + (paddle.width + ball.radius),
-                            paddle_y + (paddle.height + ball.radius),
+                            paddle_x - ball.radius * offset,
+                            paddle_y - ball.radius * offset,
+                            paddle_x + (paddle.width + ball.radius * offset),
+                            paddle_y + (paddle.height + ball.radius * offset),
                         ) && ((paddle.side == Side::Left && ball.velocity[0] < 0.0)
                             || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
                         {
@@ -76,9 +77,10 @@ impl<'s> System<'s> for BounceSystem {
                         }
                     }
                     Side::Top | Side::Bottom => {
-                        let top = paddle_y + (paddle.height + ball.radius);
-                        let bottom = paddle_y - ball.radius;
-                        let left = paddle_x - ball.radius;
+                        let offset = 1.1;
+                        let top = paddle_y + (paddle.height + (ball.radius * offset));
+                        let bottom = paddle_y - (ball.radius * offset);
+                        let left = paddle_x - (ball.radius * offset);
                         let right = paddle_x + (paddle.width + ball.radius);
                         if point_in_rect(ball_x, ball_y, left, bottom, right, top)
                             && ((paddle.side == Side::Top && ball.velocity[1] < 0.0)

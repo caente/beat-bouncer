@@ -1,6 +1,4 @@
-use crate::{
-    audio::MusicFile, beats, systems::ScoreText, Ball, Paddle, Side, ARENA_HEIGHT, ARENA_WIDTH,
-};
+use crate::{audio::MusicFile, beats, Ball, Paddle, Side, ARENA_HEIGHT, ARENA_WIDTH};
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
     core::{timing::Time, transform::Transform},
@@ -8,10 +6,25 @@ use amethyst::{
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
 };
+use std::{iter::Cycle, vec::IntoIter};
+
 #[derive(Default)]
 pub struct Pong {
     ball_spawn_timer: Option<f32>,
     sprite_sheet_handle: Option<Handle<SpriteSheet>>,
+}
+
+impl std::default::Default for Intervals {
+    fn default() -> Self {
+        let empty: Vec<f32> = vec![];
+        Intervals {
+            intervals: empty.into_iter().cycle(),
+        }
+    }
+}
+
+pub struct Intervals {
+    pub intervals: Cycle<IntoIter<f32>>,
 }
 
 impl SimpleState for Pong {
@@ -34,10 +47,12 @@ impl SimpleState for Pong {
             }
         });
         initialise_audio(world);
-        let beats =
-            beats::find_beats("assets/audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg")
-                .unwrap();
-        world.insert(beats);
+        //let beats =
+        //    beats::find_beats("assets/audio/Computer_Music_All-Stars_-_Wheres_My_Jetpack.ogg")
+        //        .unwrap();
+        //world.insert(Intervals {
+        //    intervals: beats.intervals.into_iter().cycle(),
+        //});
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {

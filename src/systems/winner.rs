@@ -41,9 +41,3 @@ impl<'s> System<'s> for WinnerSystem {
         }
     }
 }
-
-/// Stores the entities that are displaying the player score with UiText.
-pub struct ScoreText {
-    pub p1_score: Entity,
-    pub p2_score: Entity,
-}
