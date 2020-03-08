@@ -73,10 +73,13 @@ impl<'s> System<'s> for BounceSystem {
     }
 }
 const OFF_SET: f32 = 1.1;
+fn radius_offset(ball_radius: f32) -> f32 {
+    ball_radius * OFF_SET
+}
 pub struct Top(f32);
 impl Top {
     pub fn new(paddle_y: f32, ball_radius: f32, side: &Side) -> Top {
-        let ball_radius_offset = ball_radius * OFF_SET;
+        let ball_radius_offset = radius_offset(ball_radius);
         match side {
             Side::Top | Side::Bottom => Top(paddle_y + (PADDLE_WIDTH + ball_radius_offset)),
             Side::Left | Side::Right => Top(paddle_y + (PADDLE_HEIGHT + ball_radius_offset)),
@@ -85,28 +88,22 @@ impl Top {
 }
 pub struct Bottom(f32);
 impl Bottom {
-    pub fn new(paddle_y: f32, ball_radius: f32, side: &Side) -> Bottom {
-        let ball_radius_offset = ball_radius * OFF_SET;
-        match side {
-            Side::Top | Side::Bottom => Bottom(paddle_y - ball_radius_offset),
-            Side::Left | Side::Right => Bottom(paddle_y - ball_radius_offset),
-        }
+    pub fn new(paddle_y: f32, ball_radius: f32) -> Bottom {
+        let ball_radius_offset = radius_offset(ball_radius);
+        Bottom(paddle_y - ball_radius_offset)
     }
 }
 pub struct Left(f32);
 impl Left {
-    pub fn new(paddle_x: f32, ball_radius: f32, side: &Side) -> Left {
-        let ball_radius_offset = ball_radius * OFF_SET;
-        match side {
-            Side::Top | Side::Bottom => Left(paddle_x - ball_radius_offset),
-            Side::Left | Side::Right => Left(paddle_x - ball_radius_offset),
-        }
+    pub fn new(paddle_x: f32, ball_radius: f32) -> Left {
+        let ball_radius_offset = radius_offset(ball_radius);
+        Left(paddle_x - ball_radius_offset)
     }
 }
 pub struct Right(f32);
 impl Right {
     pub fn new(paddle_x: f32, ball_radius: f32, side: &Side) -> Right {
-        let ball_radius_offset = ball_radius * OFF_SET;
+        let ball_radius_offset = radius_offset(ball_radius);
         match side {
             Side::Top | Side::Bottom => Right(paddle_x + (PADDLE_HEIGHT + ball_radius_offset)),
             Side::Left | Side::Right => Right(paddle_x + (PADDLE_WIDTH + ball_radius_offset)),
@@ -123,8 +120,8 @@ impl HitRectangle {
     pub fn new(paddle_x: f32, paddle_y: f32, ball_radius: f32, side: &Side) -> HitRectangle {
         HitRectangle {
             top: Top::new(paddle_y, ball_radius, side),
-            bottom: Bottom::new(paddle_y, ball_radius, side),
-            left: Left::new(paddle_x, ball_radius, side),
+            bottom: Bottom::new(paddle_y, ball_radius),
+            left: Left::new(paddle_x, ball_radius),
             right: Right::new(paddle_x, ball_radius, side),
         }
     }
