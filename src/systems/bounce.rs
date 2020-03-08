@@ -72,48 +72,67 @@ impl<'s> System<'s> for BounceSystem {
         }
     }
 }
+const OFF_SET: f32 = 1.1;
+pub struct Top(f32);
+impl Top {
+    pub fn new(paddle_y: f32, ball_radius: f32, side: &Side) -> Top {
+        let ball_radius_offset = ball_radius * OFF_SET;
+        match side {
+            Side::Top | Side::Bottom => Top(paddle_y + (PADDLE_WIDTH + ball_radius_offset)),
+            Side::Left | Side::Right => Top(paddle_y + (PADDLE_HEIGHT + ball_radius_offset)),
+        }
+    }
+}
+pub struct Bottom(f32);
+impl Bottom {
+    pub fn new(paddle_y: f32, ball_radius: f32, side: &Side) -> Bottom {
+        let ball_radius_offset = ball_radius * OFF_SET;
+        match side {
+            Side::Top | Side::Bottom => Bottom(paddle_y - ball_radius_offset),
+            Side::Left | Side::Right => Bottom(paddle_y - ball_radius_offset),
+        }
+    }
+}
+pub struct Left(f32);
+impl Left {
+    pub fn new(paddle_x: f32, ball_radius: f32, side: &Side) -> Left {
+        let ball_radius_offset = ball_radius * OFF_SET;
+        match side {
+            Side::Top | Side::Bottom => Left(paddle_x - ball_radius_offset),
+            Side::Left | Side::Right => Left(paddle_x - ball_radius_offset),
+        }
+    }
+}
+pub struct Right(f32);
+impl Right {
+    pub fn new(paddle_x: f32, ball_radius: f32, side: &Side) -> Right {
+        let ball_radius_offset = ball_radius * OFF_SET;
+        match side {
+            Side::Top | Side::Bottom => Right(paddle_x + (PADDLE_HEIGHT + ball_radius_offset)),
+            Side::Left | Side::Right => Right(paddle_x + (PADDLE_WIDTH + ball_radius_offset)),
+        }
+    }
+}
 pub struct HitRectangle {
-    pub top: f32,
-    pub bottom: f32,
-    pub left: f32,
-    pub right: f32,
+    pub top: Top,
+    pub bottom: Bottom,
+    pub left: Left,
+    pub right: Right,
 }
 impl HitRectangle {
     pub fn new(paddle_x: f32, paddle_y: f32, ball_radius: f32, side: &Side) -> HitRectangle {
-        let offset = 1.1;
-        let ball_radius_offset = ball_radius * offset;
-        match side {
-            Side::Top | Side::Bottom => {
-                let top = paddle_y + (PADDLE_WIDTH + (ball_radius_offset));
-                let bottom = paddle_y - (ball_radius_offset);
-                let left = paddle_x - (ball_radius_offset);
-                let right = paddle_x + (PADDLE_HEIGHT + ball_radius_offset);
-                HitRectangle {
-                    top,
-                    bottom,
-                    left,
-                    right,
-                }
-            }
-            Side::Left | Side::Right => {
-                let left = paddle_x - ball_radius_offset;
-                let bottom = paddle_y - ball_radius_offset;
-                let right = paddle_x + (PADDLE_WIDTH + ball_radius_offset);
-                let top = paddle_y + (PADDLE_HEIGHT + ball_radius_offset);
-                HitRectangle {
-                    top,
-                    bottom,
-                    left,
-                    right,
-                }
-            }
+        HitRectangle {
+            top: Top::new(paddle_y, ball_radius, side),
+            bottom: Bottom::new(paddle_y, ball_radius, side),
+            left: Left::new(paddle_x, ball_radius, side),
+            right: Right::new(paddle_x, ball_radius, side),
         }
     }
 }
 
 fn adjust_velocity(x: &f32, y: &f32, velocity: &[f32; 2], magic_time: &f32) -> [f32; 2] {
     match fixed_coordinate(x, y, velocity) {
-        (xm, ym) => [velocity[0], velocity[1]], //[(xm - x) / magic_time, (ym - y) / magic_time],
+        (xm, ym) => [(xm - x) / magic_time, (ym - y) / magic_time],
     }
 }
 
@@ -144,10 +163,10 @@ fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> (f32, f32) {
 fn point_in_rect(x: f32, y: f32, rectangle: &HitRectangle) -> bool {
     match rectangle {
         HitRectangle {
-            top,
-            bottom,
-            left,
-            right,
+            top: Top(top),
+            bottom: Bottom(bottom),
+            left: Left(left),
+            right: Right(right),
         } => x >= *left && x <= *right && y >= *bottom && y <= *top,
     }
 }
