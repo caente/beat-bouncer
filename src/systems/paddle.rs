@@ -19,14 +19,14 @@ impl<'s> System<'s> for PaddleSystem {
     );
 
     fn run(&mut self, (mut paddle, transforms, ball): Self::SystemData) {
-        use crate::Side;
+        use crate::{Side, PADDLE_WIDTH, PADDLE_HEIGHT};
         for (ball, ball_transform) in (&ball, &transforms).join() {
             let ball_x = ball_transform.translation().x;
             let ball_y = ball_transform.translation().y;
             let [velocity_x, velocity_y] = ball.velocity;
             for (paddle, paddle_transform) in (&mut paddle, &transforms).join() {
-                let paddle_x = paddle_transform.translation().x - (paddle.width * 0.5);
-                let paddle_y = paddle_transform.translation().y - (paddle.height * 0.5);
+                let paddle_x = paddle_transform.translation().x;
+                let paddle_y = paddle_transform.translation().y;
                 let Top(top) = Top::new(paddle_y, ball.radius, &paddle.side);
                 let Bottom(bottom) = Bottom::new(paddle_y, ball.radius);
                 let Left(left) = Left::new(paddle_x, ball.radius);
@@ -37,19 +37,11 @@ impl<'s> System<'s> for PaddleSystem {
                 let time_until_collision_x = (end_y - ball_y) / velocity_y;
                 let collision_y = velocity_y * time_until_collision_y + ball_y;
                 let collision_x = velocity_x * time_until_collision_x + ball_x;
-                let paddle_y = paddle_transform.translation().y - ball.radius;
-                let paddle_x = paddle_transform.translation().x - ball.radius;
                 let velocity_paddle_y = (collision_y - paddle_y) / time_until_collision_y;
                 let velocity_paddle_x = (collision_x - paddle_x) / time_until_collision_x;
                 let movement = match paddle.side {
-                    Side::Left if velocity_x < 0.0 => velocity_paddle_y,
-                    Side::Left => 0.0,
-                    Side::Right if velocity_x >= 0.0 => velocity_paddle_y,
-                    Side::Right => 0.0,
-                    Side::Top if velocity_y < 0.0 => velocity_paddle_x,
-                    Side::Top => 0.0,
-                    Side::Bottom if velocity_y > 0.0 => velocity_paddle_x,
-                    Side::Bottom => 0.0,
+                    Side::Left | Side::Right => velocity_paddle_y,
+                    Side::Top | Side::Bottom => velocity_paddle_x,
                 };
                 paddle.velocity = movement;
             }

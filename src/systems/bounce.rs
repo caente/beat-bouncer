@@ -127,7 +127,7 @@ impl HitRectangle {
 
 fn adjust_velocity(x: &f32, y: &f32, velocity: &[f32; 2], magic_time: &f32) -> [f32; 2] {
     match fixed_coordinate(x, y, velocity) {
-        (xm, ym) => [(xm - x) / magic_time, (ym - y) / magic_time],
+        (xm, ym) => [velocity[0], velocity[1]], //[(xm - x) / magic_time, (ym - y) / magic_time],
     }
 }
 
