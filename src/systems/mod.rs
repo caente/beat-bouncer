@@ -5,9 +5,9 @@ mod winner;
 mod move_paddle;
 
 pub use self::{
-    bounce::BounceSystem,
+    bounce::{BounceSystem, Top, Bottom, Left, Right},
     move_balls::MoveBallsSystem,
     paddle::PaddleSystem,
     move_paddle::MovePaddleSystem,
-    winner::{WinnerSystem},
+    winner::WinnerSystem,
 };

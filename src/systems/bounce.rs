@@ -53,18 +53,16 @@ impl<'s> System<'s> for BounceSystem {
                 // is then within the paddle if its centre is within the larger wrapper
                 // rectangle.
                 let rectangle = HitRectangle::new(paddle_x, paddle_y, ball.radius, &paddle.side);
-                if point_in_rect(ball_x, ball_y, &rectangle)
-                    && ((paddle.side == Side::Left && ball.velocity[0] < 0.0)
-                        || (paddle.side == Side::Right && ball.velocity[0] > 0.0))
-                {
-                    ball.velocity[0] = -ball.velocity[0];
-                    ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
-                    play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
-                } else if point_in_rect(ball_x, ball_y, &rectangle)
-                    && ((paddle.side == Side::Top && ball.velocity[1] < 0.0)
-                        || (paddle.side == Side::Bottom && ball.velocity[1] > 0.0))
-                {
-                    ball.velocity[1] = -ball.velocity[1];
+                if point_in_rect(ball_x, ball_y, &rectangle) {
+                    if (paddle.side == Side::Left && ball.velocity[0] < 0.0)
+                        || (paddle.side == Side::Right && ball.velocity[0] > 0.0)
+                    {
+                        ball.velocity[0] = -ball.velocity[0];
+                    } else if (paddle.side == Side::Top && ball.velocity[1] < 0.0)
+                        || (paddle.side == Side::Bottom && ball.velocity[1] > 0.0)
+                    {
+                        ball.velocity[1] = -ball.velocity[1];
+                    }
                     ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
                     play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                 }
@@ -76,7 +74,7 @@ const OFF_SET: f32 = 1.1;
 fn radius_offset(ball_radius: f32) -> f32 {
     ball_radius * OFF_SET
 }
-pub struct Top(f32);
+pub struct Top(pub f32);
 impl Top {
     pub fn new(paddle_y: f32, ball_radius: f32, side: &Side) -> Top {
         let ball_radius_offset = radius_offset(ball_radius);
@@ -86,21 +84,21 @@ impl Top {
         }
     }
 }
-pub struct Bottom(f32);
+pub struct Bottom(pub f32);
 impl Bottom {
     pub fn new(paddle_y: f32, ball_radius: f32) -> Bottom {
         let ball_radius_offset = radius_offset(ball_radius);
         Bottom(paddle_y - ball_radius_offset)
     }
 }
-pub struct Left(f32);
+pub struct Left(pub f32);
 impl Left {
     pub fn new(paddle_x: f32, ball_radius: f32) -> Left {
         let ball_radius_offset = radius_offset(ball_radius);
         Left(paddle_x - ball_radius_offset)
     }
 }
-pub struct Right(f32);
+pub struct Right(pub f32);
 impl Right {
     pub fn new(paddle_x: f32, ball_radius: f32, side: &Side) -> Right {
         let ball_radius_offset = radius_offset(ball_radius);

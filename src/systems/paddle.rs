@@ -1,5 +1,5 @@
-use crate::Ball;
-use crate::Paddle;
+use crate::systems::{Bottom, Left, Right, Top};
+use crate::{Ball, Paddle};
 use amethyst::{
     core::transform::Transform,
     derive::SystemDesc,
@@ -24,14 +24,15 @@ impl<'s> System<'s> for PaddleSystem {
             let ball_x = ball_transform.translation().x;
             let ball_y = ball_transform.translation().y;
             let [velocity_x, velocity_y] = ball.velocity;
-            use crate::{ARENA_HEIGHT, ARENA_WIDTH, PADDLE_WIDTH};
             for (paddle, paddle_transform) in (&mut paddle, &transforms).join() {
-                let end_x = if velocity_x < 0.0 { PADDLE_WIDTH } else { ARENA_WIDTH - PADDLE_WIDTH};
-                let end_y = if velocity_y < 0.0 {
-                    PADDLE_WIDTH
-                } else {
-                    ARENA_HEIGHT - PADDLE_WIDTH
-                };
+                let paddle_x = paddle_transform.translation().x - (paddle.width * 0.5);
+                let paddle_y = paddle_transform.translation().y - (paddle.height * 0.5);
+                let Top(top) = Top::new(paddle_y, ball.radius, &paddle.side);
+                let Bottom(bottom) = Bottom::new(paddle_y, ball.radius);
+                let Left(left) = Left::new(paddle_x, ball.radius);
+                let Right(right) = Right::new(paddle_x, ball.radius, &paddle.side);
+                let end_x = if velocity_x < 0.0 { left } else { right };
+                let end_y = if velocity_y < 0.0 { top } else { bottom };
                 let time_until_collision_y = (end_x - ball_x) / velocity_x;
                 let time_until_collision_x = (end_y - ball_y) / velocity_y;
                 let collision_y = velocity_y * time_until_collision_y + ball_y;
