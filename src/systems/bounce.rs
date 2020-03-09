@@ -58,13 +58,17 @@ impl<'s> System<'s> for BounceSystem {
                         || (paddle.side == Side::Right && ball.velocity[0] > 0.0)
                     {
                         ball.velocity[0] = -ball.velocity[0];
+                        ball.velocity =
+                            adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
+                        play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                     } else if (paddle.side == Side::Top && ball.velocity[1] < 0.0)
                         || (paddle.side == Side::Bottom && ball.velocity[1] > 0.0)
                     {
                         ball.velocity[1] = -ball.velocity[1];
+                        ball.velocity =
+                            adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
+                        play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                     }
-                    ball.velocity = adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
-                    play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                 }
             }
         }
@@ -127,20 +131,24 @@ impl HitRectangle {
 
 fn adjust_velocity(x: &f32, y: &f32, velocity: &[f32; 2], magic_time: &f32) -> [f32; 2] {
     match fixed_coordinate(x, y, velocity) {
-        (xm, ym) => [velocity[0], velocity[1]], //[(xm - x) / magic_time, (ym - y) / magic_time],
+        (xm, ym) => [(xm - x) / magic_time, (ym - y) / magic_time],
     }
 }
 
 fn fixed_coordinate(x: &f32, y: &f32, velocity: &[f32; 2]) -> (f32, f32) {
-    let xm = if velocity[0] >= 0.0 {
-        ARENA_WIDTH - (PADDLE_WIDTH + BALL_RADIUS)
+    let xm = if velocity[0] > 0.0 {
+        let Left(left) = Left::new(ARENA_WIDTH - PADDLE_WIDTH, BALL_RADIUS);
+        left
     } else {
-        PADDLE_WIDTH + BALL_RADIUS
+        let Right(right) = Right::new(PADDLE_WIDTH, BALL_RADIUS, &Side::Left);
+        right
     };
-    let ym = if velocity[1] >= 0.0 {
-        ARENA_HEIGHT - (BALL_RADIUS + PADDLE_WIDTH)
+    let ym = if velocity[1] > 0.0 {
+        let Bottom(bottom) = Bottom::new(ARENA_HEIGHT - PADDLE_WIDTH, BALL_RADIUS);
+        bottom
     } else {
-        PADDLE_WIDTH + BALL_RADIUS
+        let Top(top) = Top::new(PADDLE_WIDTH, BALL_RADIUS, &Side::Bottom);
+        top
     };
     let tx = (xm - *x) / velocity[0];
     let ty = (ym - *y) / velocity[1];
