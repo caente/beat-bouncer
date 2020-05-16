@@ -5,8 +5,6 @@ use amethyst::{
     ecs::prelude::{Join, Read, System, SystemData, WriteStorage},
 };
 
-/// This system is responsible for moving all the paddles according to the user
-/// provided input.
 #[derive(SystemDesc)]
 pub struct MovePaddleSystem;
 

@@ -58,15 +58,15 @@ impl<'s> System<'s> for BounceSystem {
                         || (paddle.side == Side::Right && ball.velocity[0] > 0.0)
                     {
                         ball.velocity[0] = -ball.velocity[0];
-                        ball.velocity =
-                            adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
+                        //ball.velocity =
+                        //    adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
                         play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                     } else if (paddle.side == Side::Top && ball.velocity[1] < 0.0)
                         || (paddle.side == Side::Bottom && ball.velocity[1] > 0.0)
                     {
                         ball.velocity[1] = -ball.velocity[1];
-                        ball.velocity =
-                            adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
+                        //ball.velocity =
+                        //    adjust_velocity(&ball_x, &ball_y, &ball.velocity, &magic_time);
                         play_bounce(&*sounds, &storage, audio_output.as_ref().map(|o| o.deref()));
                     }
                 }
